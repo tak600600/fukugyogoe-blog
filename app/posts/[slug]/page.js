@@ -1,5 +1,4 @@
 import { getAllPosts, getPostBySlug } from '@/lib/posts';
-import { MDXRemote } from 'next-mdx-remote/rsc';
 import Sidebar from '@/components/Sidebar';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -18,13 +17,13 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }) {
-  const post = getPostBySlug(params.slug);
+  const post = await getPostBySlug(params.slug);
   if (!post) return {};
   return { title: post.title, description: post.excerpt || post.title };
 }
 
-export default function PostPage({ params }) {
-  const post = getPostBySlug(params.slug);
+export default async function PostPage({ params }) {
+  const post = await getPostBySlug(params.slug);
   if (!post) notFound();
   const m = categoryMeta[post.category] || { label: post.category, cls: 'ai' };
 
@@ -41,9 +40,10 @@ export default function PostPage({ params }) {
             {post.author && <span style={{ marginLeft: 12 }}>by {post.author}</span>}
           </div>
         </div>
-        <div className="article-content">
-          <MDXRemote source={post.content} />
-        </div>
+        <div
+          className="article-content"
+          dangerouslySetInnerHTML={{ __html: post.contentHtml }}
+        />
         <div style={{ marginTop: 40, paddingTop: 20, borderTop: '1px solid var(--border)' }}>
           <Link href="/" style={{ color: 'var(--primary)', fontWeight: 700 }}>← ホームに戻る</Link>
         </div>
